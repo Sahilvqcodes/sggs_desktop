@@ -73,14 +73,32 @@ class _MyHomePageState extends State<MyHomePage> {
   // }
   addPage(String _id) async {
     var _angData = await SggsHandler.addMultiviewData(context, _id);
-    print("_angData ${_angData}");
-    List<String> _data = [];
-    _data.add(jsonEncode(_angData));
-
+    // print("_angData ${_angData}");
     final prefs = await SharedPreferences.getInstance();
-    prefs.setString("multiview", jsonEncode(_angData));
-    var localMultiview = prefs.getStringList("multiview");
-    print("localMultiview $localMultiview");
+    List<String> _multiviewData = prefs.getStringList("multiview") ?? [];
+    // List<String>? _data = [];
+    if (_multiviewData.contains(jsonEncode(_angData[0]))) {
+      print("available");
+      CoolAlert.show(
+          width: 50,
+          context: context,
+          type: CoolAlertType.warning,
+          text: "Already Available",
+          confirmBtnColor: Theme.of(context).colorScheme.primary);
+    } else {
+      _multiviewData.add(jsonEncode(_angData[0]));
+      // print(_data);
+      await prefs.setStringList("multiview", _multiviewData);
+      CoolAlert.show(
+          width: 50,
+          context: context,
+          type: CoolAlertType.success,
+          text: "Added Successfully",
+          confirmBtnColor: Theme.of(context).colorScheme.primary);
+    }
+
+    // var localMultiview = prefs.getString("multiview");
+    // print("localMultiview $localMultiview");
   }
 
   // addPage(String gurugranth_id) async {

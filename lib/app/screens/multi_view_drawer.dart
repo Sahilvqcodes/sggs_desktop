@@ -38,67 +38,89 @@ class _MultiviewDrawerState extends State<MultiviewDrawer> {
   // }
   getMultiviewData() async {
     final prefs = await SharedPreferences.getInstance();
-    List<String> _multiviewData = prefs.getStringList("multiview")!;
-    print("_data ${_multiviewData}");
-    List<AngData>? _angList;
+    var _multiviewData = prefs.getStringList("multiview")!;
+    print("_multiviewData1 ${_multiviewData}");
+    List<AngData> _angList = [];
     _multiviewData.forEach((element) {
       Map<String, dynamic> map = jsonDecode(element);
       print("map $map");
       AngData _angData = AngData.fromJson(map);
-      _angList!.add(_angData);
+      _angList.add(_angData);
     });
-    print("_multiviewData ${_angList}");
-    return _multiviewData;
+    print("_multiviewData2 ${_angList}");
+    return _angList;
   }
 
-  removeMultiview(String? id) async {
-    print("remove $id");
-    final SharedPreferences sharedPreferences =
-        await SharedPreferences.getInstance();
-    String? userId = sharedPreferences.getString("userId");
-
-    final http.Response res = await http.post(
-      Uri.parse('http://143.244.139.23:94/api/multiviewdelete/$id'),
-      headers: <String, String>{
-        'Content-Type': 'application/json; charset=UTF-8',
-      },
-      body: jsonEncode(<String, String>{
-        // 'name': user.name,
-        'user_id': userId ?? "",
-      }),
-    );
-    String json = res.body;
-    if (res.statusCode == 200) {
-      print("Response $json");
+  removeMultiview(int? id) async {
+    final prefs = await SharedPreferences.getInstance();
+    List<String> _removeMultiview = prefs.getStringList("multiview")!;
+    if (_removeMultiview != null) {
+      _removeMultiview.removeAt(0);
+      print("_removeMultiview $_removeMultiview");
+      // prefs.setString("multiview", _removeMultiview)
+      await prefs.remove("multiview");
+      await prefs.setStringList("multiview", _removeMultiview);
       setState(() {});
     } else {
-      print("error");
+      print('favoriteList was null');
     }
   }
 
+  // removeMultiview(String? id) async {
+  //   print("remove $id");
+  //   final SharedPreferences sharedPreferences =
+  //       await SharedPreferences.getInstance();
+  //   String? userId = sharedPreferences.getString("userId");
+
+  //   final http.Response res = await http.post(
+  //     Uri.parse('http://143.244.139.23:94/api/multiviewdelete/$id'),
+  //     headers: <String, String>{
+  //       'Content-Type': 'application/json; charset=UTF-8',
+  //     },
+  //     body: jsonEncode(<String, String>{
+  //       // 'name': user.name,
+  //       'user_id': userId ?? "",
+  //     }),
+  //   );
+  //   String json = res.body;
+  //   if (res.statusCode == 200) {
+  //     print("Response $json");
+  //     setState(() {});
+  //   } else {
+  //     print("error");
+  //   }
+  // }
   clearAllMultiview() async {
-    final SharedPreferences sharedPreferences =
-        await SharedPreferences.getInstance();
-    String? userId = sharedPreferences.getString("userId");
-
-    final http.Response res = await http.post(
-      Uri.parse('http://143.244.139.23:94/api/clearall'),
-      headers: <String, String>{
-        'Content-Type': 'application/json; charset=UTF-8',
-      },
-      body: jsonEncode(<String, String>{
-        // 'name': user.name,
-        'user_id': userId ?? "",
-      }),
-    );
-    String json = res.body;
-    if (res.statusCode == 200) {
-      print("Response $json");
-      setState(() {});
-    } else {
-      print("error");
-    }
+    final prefs = await SharedPreferences.getInstance();
+    List<String> _blankMulti = [];
+    prefs.remove("multiview");
+    prefs.setStringList("multiview", _blankMulti);
+    setState(() {});
   }
+
+  // clearAllMultiview() async {
+  //   final SharedPreferences sharedPreferences =
+  //       await SharedPreferences.getInstance();
+  //   String? userId = sharedPreferences.getString("userId");
+
+  //   final http.Response res = await http.post(
+  //     Uri.parse('http://143.244.139.23:94/api/clearall'),
+  //     headers: <String, String>{
+  //       'Content-Type': 'application/json; charset=UTF-8',
+  //     },
+  //     body: jsonEncode(<String, String>{
+  //       // 'name': user.name,
+  //       'user_id': userId ?? "",
+  //     }),
+  //   );
+  //   String json = res.body;
+  //   if (res.statusCode == 200) {
+  //     print("Response $json");
+  //     setState(() {});
+  //   } else {
+  //     print("error");
+  //   }
+  // }
 
   @override
   Widget build(BuildContext context) {
@@ -187,8 +209,8 @@ class _MultiviewDrawerState extends State<MultiviewDrawer> {
                             (BuildContext context, AsyncSnapshot snapshot) {
                           // print("_multiviewData $_multiviewData");
                           print("snapshot.data ${snapshot.data} ");
-                          List<AngData> multiviewData = snapshot.data;
-                          print(multiviewData![0].ang);
+                          List<AngData>? multiviewData = snapshot.data;
+                          // print(multiviewData[0].ang);
 
                           if (!snapshot.hasData) {
                             return const Center(
@@ -255,7 +277,7 @@ class _MultiviewDrawerState extends State<MultiviewDrawer> {
                                   child: ListView.builder(
                                       scrollDirection: Axis.vertical,
                                       shrinkWrap: true,
-                                      itemCount: multiviewData?.length,
+                                      itemCount: multiviewData!.length,
                                       itemBuilder: (context, index) {
                                         return Padding(
                                           padding:
@@ -276,13 +298,20 @@ class _MultiviewDrawerState extends State<MultiviewDrawer> {
                                                     Navigator.pushReplacement(
                                                       context,
                                                       MaterialPageRoute(
-                                                          builder: (context) =>
-                                                              GuruGranthSahib(
-                                                                id: int.parse(
-                                                                    multiviewData?[index]
-                                                                            .ang ??
-                                                                        ""),
-                                                              )),
+                                                        builder: (context) =>
+                                                            GuruGranthSahib(
+                                                          ang: int.parse(
+                                                              multiviewData[
+                                                                          index]
+                                                                      .ang ??
+                                                                  ""),
+                                                          id: int.parse(
+                                                              multiviewData[
+                                                                          index]
+                                                                      .id ??
+                                                                  ""),
+                                                        ),
+                                                      ),
                                                     );
                                                     // Get.toNamed(
                                                     //     Routes.GURUGRANTH,
@@ -297,7 +326,7 @@ class _MultiviewDrawerState extends State<MultiviewDrawer> {
                                                           EdgeInsets.all(8.0),
                                                       child: Center(
                                                         child: Text(
-                                                          "${multiviewData![index].id}",
+                                                          "${multiviewData[index].name}",
                                                           style:
                                                               const TextStyle(
                                                             color: Color(
@@ -319,10 +348,7 @@ class _MultiviewDrawerState extends State<MultiviewDrawer> {
                                                     color: Color(0xFF3D3D3D)),
                                                 child: InkWell(
                                                   onTap: () {
-                                                    removeMultiview(
-                                                        multiviewData![index]
-                                                            .id
-                                                            .toString());
+                                                    removeMultiview(index);
                                                   },
                                                   child: const Icon(
                                                     Icons.remove,

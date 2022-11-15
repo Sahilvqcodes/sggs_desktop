@@ -23,8 +23,10 @@ class GuruGranthSahib extends StatefulWidget {
   const GuruGranthSahib({
     Key? key,
     this.id,
+    this.ang,
   }) : super(key: key);
   final int? id;
+  final int? ang;
   @override
   State<GuruGranthSahib> createState() => _GuruGranthSahibState();
 }
@@ -44,7 +46,8 @@ class _GuruGranthSahibState extends State<GuruGranthSahib> {
   bool value = false;
   int i = 1;
 
-  bool buttonenabled = false;
+  bool? buttonenabled;
+  List<AngData>? _angData;
 
   String line_no = "";
   String? userId;
@@ -57,10 +60,13 @@ class _GuruGranthSahibState extends State<GuruGranthSahib> {
     // print(Get.arguments);
     var data = Get.arguments;
     // setState(() {
-    if (widget.id == null) {
+    if (widget.ang == null) {
       i = data?[0] ?? 1;
+      i == 1 ? buttonenabled = false : buttonenabled = true;
     } else {
-      i = widget.id ?? 1;
+      i = widget.ang ?? 1;
+      i == 1 ? buttonenabled = false : buttonenabled = true;
+      scrollData(widget.id);
     }
 
     if (Get.arguments != null) {
@@ -136,116 +142,39 @@ class _GuruGranthSahibState extends State<GuruGranthSahib> {
   // }
 
   String? bookName;
-
-  addPage(String gurugranth_id) async {
-    final SharedPreferences sharedPreferences =
-        await SharedPreferences.getInstance();
-    String? userId = sharedPreferences.getString("userId");
-    final http.Response res = await http.post(
-      Uri.parse('http://143.244.139.23:94/api/multiview'),
-      headers: <String, String>{
-        'Content-Type': 'application/json; charset=UTF-8',
-      },
-      body: jsonEncode(<String, String>{
-        'user_id': userId ?? "",
-        'gurugranth_id': gurugranth_id,
-      }),
-    );
-    String json = res.body;
-    Map<String, dynamic> body = jsonDecode(json);
-    print("json ${body["success"]}");
-    if (body["success"] == "SuccessFully Created") {
-      print("MultiView Added Successsfully");
+  addPage(String _id) async {
+    var _angData = await SggsHandler.addMultiviewData(context, _id);
+    print("_angData ${_angData}");
+    final prefs = await SharedPreferences.getInstance();
+    List<String> _multiviewData = prefs.getStringList("multiview") ?? [];
+    // List<String>? _data = [];
+    if (_multiviewData.contains(jsonEncode(_angData[0]))) {
+      print("available");
+      CoolAlert.show(
+          width: 50,
+          context: context,
+          type: CoolAlertType.warning,
+          text: "Already Available",
+          confirmBtnColor: Theme.of(context).colorScheme.primary);
+    } else {
+      _multiviewData.add(jsonEncode(_angData[0]));
+      // print(_data);
+      await prefs.setStringList("multiview", _multiviewData);
       CoolAlert.show(
           width: 50,
           context: context,
           type: CoolAlertType.success,
           text: "Added Successfully",
           confirmBtnColor: Theme.of(context).colorScheme.primary);
-    } else {
-      CoolAlert.show(
-          width: 50,
-          context: context,
-          type: CoolAlertType.warning,
-          text: "${body["success"]}",
-          confirmBtnColor: Theme.of(context).colorScheme.primary);
-    }
-  }
-
-  // var guruGranth;
-  List<Lines>? guruGranthData;
-  Future getAng(String id) async {
-    String url = 'http://143.244.139.23:94/api/ang?id=$id';
-    var response = await http.get(Uri.parse(url), headers: {
-      'Content-Type': 'application/json',
-      'Accept': 'application/json',
-    });
-    String json = response.body;
-    var guruGranth = Gurugranth.fromJson(jsonDecode(response.body));
-
-    // print(guruGranthData);
-    // guruGranth.data!.length == 0 ? print("cj bnjk") : print("cdbhjbvhcd");
-    if (guruGranth.data!.length != 0) {
-      // print("guruGranthData $guruGranthData");
-      guruGranthData = guruGranth.data;
-    } else {
-      setState(() {
-        i = 1;
-      });
-      CoolAlert.show(
-          width: 50,
-          context: context,
-          type: CoolAlertType.error,
-          text: "Ang Is Not Available",
-          confirmBtnColor: Theme.of(context).colorScheme.primary);
     }
 
-    return guruGranth.data;
+    // var localMultiview = prefs.getString("multiview");
+    // print("localMultiview $localMultiview");
   }
 
   LineData? _dataLine;
   int sr_No = 1;
-  // getLineNo(String line_no) async {
-  //   String url = 'http://143.244.139.23:94/api/line?id=$line_no';
-  //   var response = await http.get(Uri.parse(url), headers: {
-  //     'Content-Type': 'application/json',
-  //     'Accept': 'application/json',
-  //   });
-  //   String json = response.body;
-  //   var _lineData = LineData.fromJson(jsonDecode(response.body));
-  //   _dataLine = _lineData;
-  //   // print("_dataLine?.ang ${_dataLine?.data?.ang}");
-  //   // print(guruGranthData);
 
-  //   if (response.statusCode == 200) {
-  //     setState(() {
-  //       i = int.parse(_dataLine?.data?.ang ?? "");
-  //       sr_No = _dataLine?.count ?? 1;
-  //       sr_No -= 1;
-  //     });
-  //   } else if (response.statusCode == 401) {
-  //     CoolAlert.show(
-  //         width: 50,
-  //         context: context,
-  //         type: CoolAlertType.error,
-  //         text: "Line No Is Not Available",
-  //         confirmBtnColor: Theme.of(context).colorScheme.primary);
-  //   }
-
-  //   return _dataLine;
-  // }
-
-  // final double _height = 100;
-  // // final contentSize = _controller.position.viewportDimension + _controller.position.maxScrollExtent;
-
-  // _animateToIndex(int index) {
-  //   _controller.position.animateTo(
-  //     index * _height,
-  //     duration: Duration(seconds: 2),
-  //     curve: Curves.fastOutSlowIn,
-  //   );
-  // }
-  // List of items in our dropdown menu
   getLineNo(String line_no) async {
     List<AngData> data = await SggsHandler.getLineNo(context, line_no);
     print("data $data");
@@ -315,7 +244,7 @@ class _GuruGranthSahibState extends State<GuruGranthSahib> {
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
               InkWell(
-                onTap: buttonenabled
+                onTap: buttonenabled!
                     ? () async {
                         await _scrollToIndex(0);
                         setState(() {
@@ -330,7 +259,7 @@ class _GuruGranthSahibState extends State<GuruGranthSahib> {
                   child: Column(
                     children: [
                       IconButton(
-                        onPressed: buttonenabled
+                        onPressed: buttonenabled!
                             ? () async {
                                 await _scrollToIndex(0);
                                 setState(() {
@@ -617,7 +546,7 @@ class _GuruGranthSahibState extends State<GuruGranthSahib> {
             builder: (BuildContext context, AsyncSnapshot snapshot) {
               // print("Matches ${snapshot.data}");
 
-              List<AngData>? _angData = snapshot.data;
+              _angData = snapshot.data;
               // print("_data1 ${_angData}");
               if (!snapshot.hasData || snapshot.data == null) {
                 return const Center(
@@ -843,8 +772,7 @@ class _GuruGranthSahibState extends State<GuruGranthSahib> {
                                     color: Colors.white),
                                 child: InkWell(
                                   onTap: () {
-                                    addPage(
-                                        guruGranthData?[0].id.toString() ?? "");
+                                    addPage(_angData?[0].id.toString() ?? "");
                                   },
                                   child: Center(
                                     child: const Icon(

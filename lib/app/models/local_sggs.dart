@@ -26,8 +26,16 @@ class AngData {
   String? ang;
   String? name;
   String? english;
+  String? serchEnglishData;
+  String? serchPunjabiData;
 
-  AngData({this.id, this.ang, this.name, this.english});
+  AngData(
+      {this.id,
+      this.ang,
+      this.name,
+      this.english,
+      this.serchEnglishData,
+      this.serchPunjabiData});
 
   AngData.fromJson(Map<String, dynamic> json) {
     id = json['id'];
